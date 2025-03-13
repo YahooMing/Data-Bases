@@ -1,0 +1,19 @@
+Oskar Chrostowski
+-- Zadanie 1
+SELECT DAYOFYEAR(CURDATE());
+-- Zadanie 2
+SELECT DAYNAME('2002-11-23');
+-- Zadanie 3
+SELECT SUBSTRING(PI() +  0.000000000000, 12, 1);
+-- Zadanie 4
+SELECT SUBSTRING(EXP(1) + 0.000000000000, 10, 1);
+-- Zadanie 5
+SELECT FLOOR(RAND()*(6)+1);
+-- Zadanie 6
+SELECT nazwa , ilosc FROM produkty;
+-- Zadanie 7
+SELECT idk, nazwa, miasto, SUBSTRING_INDEX(adres, ". ", -1) AS skrocony_adres, telefon FROM klienci;
+-- Zadanie 8 
+SELECT CONCAT_WS(", ", nazwa, adres, miasto, telefon) AS wizytowka FROM klienci
+-- Zadanie 9 
+SELECT nazwa, JSON_OBJECT("zlotych", FLOOR(cena))
