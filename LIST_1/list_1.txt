@@ -1,19 +1,62 @@
 Oskar Chrostowski
--- Zadanie 1
+
+Zadanie 1
 SELECT DAYOFYEAR(CURDATE());
--- Zadanie 2
+
+Zadanie 2
 SELECT DAYNAME('2002-11-23');
--- Zadanie 3
+
+Zadanie 3
 SELECT SUBSTRING(PI() +  0.000000000000, 12, 1);
--- Zadanie 4
+
+Zadanie 4
 SELECT SUBSTRING(EXP(1) + 0.000000000000, 10, 1);
--- Zadanie 5
+
+Zadanie 5
 SELECT FLOOR(RAND()*(6)+1);
--- Zadanie 6
+
+Zadanie 6
 SELECT nazwa , ilosc FROM produkty;
--- Zadanie 7
+
+Zadanie 7
 SELECT idk, nazwa, miasto, SUBSTRING_INDEX(adres, ". ", -1) AS skrocony_adres, telefon FROM klienci;
--- Zadanie 8 
+
+Zadanie 8 
 SELECT CONCAT_WS(", ", nazwa, adres, miasto, telefon) AS wizytowka FROM klienci
--- Zadanie 9 
+
+Zadanie 9 
 SELECT nazwa, JSON_OBJECT("zlotych", FLOOR(cena))
+
+Zadanie 10
+SELECT idz,CASE WHEN DAYNAME(DATE_ADD(data, INTERVAL 1 MONTH)) = 'Sunday' THEN DATE_SUB(DATE_ADD(data, INTERVAL 1 MONTH), INTERVAL 2 DAY) WHEN DAYNAME(DATE_ADD(data, INTERVAL 1 MONTH)) = 'Saturday' THEN DATE_SUB(DATE_ADD(data, INTERVAL 1 MONTH), INTERVAL 1 DAY) ELSE DATE_ADD(data, INTERVAL 1 MONTH) END AS data_faktury FROM zamow;
+
+Zadanie 11
+SELECT nazwa FROM klienci WHERE miasto != 'Wrocław';
+
+Zadanie 12
+SELECT nazwa FROM klienci WHERE LEFT(nazwa, LENGTH(nazwa)/2) LIKE '%s%';
+
+Zadanie 13
+SELECT idz FROM zamow WHERE DAYNAME(data) in ('Monday', 'Tuesday');
+
+Zadanie 14
+SELECT idz FROM zamow WHERE TIME(data) > "16:00:00";
+
+Zadanie 15
+SELECT nazwa FROM produkty WHERE nazwa not LIKE '%Apple%' ;
+
+Zadanie 16
+SELECT nazwa FROM klienci WHERE adres LIKE '%Marszałkowska%' ;
+
+Zadanie 17
+SELECT miasto FROM klienci WHERE CHAR_LENGTH(adres)>=15 ;
+
+Zadanie 18
+SELECT nazwa , CEIL(cena/12 + 0.1 * cena) as rata FROM produkty;
+
+Zadanie 19
+SELECT * FROM produkty;
+SELECT * FROM detal_zamow;
+SELECT @szukany_produkt_id:=idp FROM produkty ORDER BY ilosc DESC LIMIT 1;
+SELECT * FROM detal_zamow WHERE p_id = @szukany_produkt_id;
+SELECT COUNT(DISTINCT z_id) AS liczba_unikalnych_zamowien FROM detal_zamow WHERE p_id = @szukany_produkt_id;
