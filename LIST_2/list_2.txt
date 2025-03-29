@@ -19,6 +19,34 @@ Zadanie 6
 SELECT klienci.nazwa, DATE_FORMAT(zamow.data, '%M') as miesiac FROM klienci JOIN zamow ON  zamow.k_id = klienci.idk AND klienci.miasto NOT IN ('Wrocław');
 
 Zadanie 7
-SELECT produkty.cena FROM detal_zamow JOIN zamow ON detal_zamow.z_id = zamow.idz JOIN produkty ON detal_zamow.p_id = produkty.idp WHERE DAYOFWEEK(zamow.data) = 6;
+SELECT produkty.cena, produkty.nazwa, DAYOFWEEK(zamow.data) as dzien FROM detal_zamow JOIN zamow ON detal_zamow.z_id = zamow.idz JOIN produkty ON detal_zamow.p_id = produkty.idp WHERE DAYOFWEEK(zamow.data) = 6;
 
 Zadanie 8
+SELECT klienci.nazwa, klienci.miasto FROM klienci JOIN zamow ON klienci.idk = zamow.k_id JOIN detal_zamow ON zamow.idz = detal_zamow.z_id WHERE detal_zamow.sztuk > 4 ORDER BY klienci.miasto DESC;
+
+Zadanie 9
+SELECT klienci.adres, klienci.nazwa FROM klienci JOIN zamow ON zamow.k_id = klienci.idk JOIN detal_zamow ON zamow.idz = detal_zamow.z_id JOIN produkty ON produkty.idp = detal_zamow.p_id WHERE produkty.nazwa LIKE "%laptop%" ORDER BY REVERSE(klienci.nazwa);
+
+Zadanie 10
+SELECT produkty.nazwa, klienci.telefon FROM produkty JOIN detal_zamow ON detal_zamow.p_id = produkty.idp JOIN zamow ON zamow.idz = detal_zamow.z_id JOIN klienci ON zamow.k_id = klienci.idk WHERE klienci.telefon LIKE "%4%";
+
+Zadanie 11
+SELECT k.nazwa AS klient FROM klienci k JOIN produkty p ON INSTR(CONCAT(',', p.nazwa, ','), CONCAT(',', k.nazwa, ',')) GROUP BY k.nazwa;
+
+Zadanie 12
+SELECT klienci.nazwa ,DATE(zamow.data) AS 'data_dzienna' FROM klienci JOIN zamow ON klienci.idk = zamow.k_id ORDER BY DATE(zamow.data);
+
+Zadanie 13
+SELECT produkty.nazwa, klienci.miasto FROM produkty JOIN detal_zamow ON produkty.idp = detal_zamow.p_id JOIN zamow ON detal_zamow.z_id = zamow.idz JOIN klienci ON zamow.k_id = klienci.idk;
+
+Zadanie 14
+SELECT produkty.nazwa FROM produkty LEFT JOIN detal_zamow ON produkty.idp = detal_zamow.p_id WHERE detal_zamow.p_id IS NULL;
+
+Zadanie 15
+SELECT klienci.nazwa FROM klienci LEFT JOIN zamow ON klienci.idk = zamow.k_id LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id WHERE zamow.idz IS NULL OR detal_zamow.z_id IS NULL;
+
+Zadanie 16
+SELECT zamow.idz FROM zamow LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id WHERE detal_zamow.z_id IS NULL;
+
+Zadanie 17
+
