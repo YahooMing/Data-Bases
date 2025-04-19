@@ -1,0 +1,116 @@
+Oskar Chrostowski lista 4
+
+Zadanie 1.
+SELECT SUM(cena*ilosc) AS wartosc FROM produkty;
+
+Zadanie 2.
+SELECT GROUP_CONCAT(nazwa ORDER BY nazwa SEPARATOR ', ') AS wszyscy_klienci FROM klienci;
+
+Zadanie 3.
+SELECT
+	DATEDIFF(MAX(zamow.data), MIN(zamow.data)) AS roznica_dni,
+	COUNT(DISTINCT produkty.idp) AS liczba_roznych_produktow,
+	COUNT(DISTINCT zamow.idz) AS liczba_zamowien
+FROM zamow
+JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+JOIN produkty ON detal_zamow.p_id = produkty.idp
+WHERE produkty.nazwa LIKE '%Samsung%';
+
+Zadanie 4.
+SELECT
+	DAYNAME(data) AS dzien_tygodnia,
+	COUNT(DISTINCT k_id) AS ile_klientow
+FROM zamow
+GROUP BY dzien_tygodnia;
+
+Zadanie 5.
+SELECT
+	YEAR(zamow.data) AS rok,
+	MONTH(zamow.data) AS miesiac,
+	SUM(produkty.cena * detal_zamow.sztuk) AS laczna_wartosc
+FROM zamow
+JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+JOIN produkty ON detal_zamow.p_id = produkty.idp
+GROUP BY rok, miesiąc
+
+Zadanie 6.
+SELECT
+	CEIL(cena/1000) *1000 AS kategoria,
+	JSON_ARRAYAGG(nazwa ORDER BY nazwa) AS produkty
+FROM produkty
+GROUP BY kategoria;
+
+Zadanie 7.
+SELECT produkty.nazwa FROM produkty JOIN detal_zamow ON produkty.idp = detal_zamow.p_id 
+GROUP BY produkty.idp, produkty.nazwa 
+HAVING SUM(produkty.cena * detal_zamow.sztuk) > 7000;
+
+Zadanie 8.
+SELECT klienci.nazwa
+FROM klienci
+JOIN zamow ON klienci.idk = zamow.k_id
+JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+JOIN produkty ON detal_zamow.p_id = produkty.idp
+WHERE produkty.cena > 1800
+GROUP BY klienci.idk, klienci.nazwa
+HAVING SUM(detal_zamow.sztuk) > 1;
+
+Zadanie 9.
+SELECT produkty.nazwa, AVG(detal_zamow.sztuk) AS srednia_sztuk FROM produkty
+JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+JOIN zamow ON detal_zamow.z_id = zamow.idz
+GROUP BY produkty.idp, produkty.nazwa
+HAVING MAX(CASE WHEN DAYOFWEEK(zamow.data) = 6 THEN 1 ELSE 0 END) = 1;
+
+Zadanie 10.
+SELECT klienci.nazwa, COUNT(zamow.idz) AS liczba_zamowien FROM klienci
+LEFT JOIN zamow ON klienci.idk = zamow.k_id
+GROUP BY klienci.idk, klienci.nazwa;
+
+Zadanie 11.
+SELECT produkty.nazwa, COALESCE(SUM(detal_zamow.sztuk), 0) AS laczna_liczba_sztuk FROM produkty
+LEFT JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+GROUP BY produkty.idp, produkty.nazwa;
+
+Zadanie 12.
+SELECT klienci.miasto, COALESCE(SUM(detal_zamow.sztuk), 0) AS laczna_liczba FROM klienci
+LEFT JOIN zamow ON klienci.idk = zamow.k_id
+LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+GROUP BY klienci.miasto;
+
+Zadanie 13.
+SELECT klienci.nazwa, klienci.miasto, COALESCE(SUM(produkty.cena * detal_zamow.sztuk), 0) AS wartosc_zamowien FROM klienci
+LEFT JOIN zamow ON klienci.idk = zamow.k_id
+LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+LEFT JOIN produkty ON detal_zamow.p_id = produkty.idp
+GROUP BY klienci.idk, klienci.nazwa,klienci.miasto;
+
+Zadanie 14.
+SELECT zamow.idz, zamow.data, COALESCE(SUM(produkty.cena * detal_zamow.sztuk), 0) AS wartosc FROM zamow
+LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+LEFT JOIN produkty ON detal_zamow.p_id = produkty.idp
+GROUP BY zamow.idz, zamow.data;
+
+Zadanie 15.
+SELECT klienci.nazwa, COUNT(DISTINCT produkty.idp) AS liczba_produktow
+FROM klienci
+LEFT JOIN zamow ON klienci.idk = zamow.k_id
+LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+LEFT JOIN produkty ON detal_zamow.p_id = produkty.idp AND produkty.cena > 1500
+GROUP BY klienci.idk, klienci.nazwa;
+
+Zadanie 16.
+SELECT produkty.nazwa, COUNT(DISTINCT klienci.idk) AS liczba_klientow FROM produkty
+LEFT JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+LEFT JOIN zamow ON detal_zamow.z_id = zamow.idz
+LEFT JOIN klienci ON zamow.k_id = klienci.idk AND klienci.miasto LIKE 'W%'
+GROUP BY produkty.idp, produkty.nazwa;
+
+Zadanie 17
+SELECT zamow1.* FROM zamow zamow1
+LEFT JOIN zamow ON zamow.data > zamow1.data
+GROUP BY zamow1.idz, zamow1.k_id, zamow1.data
+HAVING COUNT(zamow.idz) < 3;
+
+Zadanie 18.
+SELECT NULL;
