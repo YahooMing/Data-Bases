@@ -1,0 +1,320 @@
+Zadanie 1.
+
+CREATE OR REPLACE VIEW klienci_zamowienia_produkty AS
+SELECT 
+    klienci.idk AS klient_id,
+    klienci.nazwa AS klient_nazwa,
+    klienci.miasto,
+    klienci.adres,
+    klienci.telefon,
+    zamow.idz AS zamowienie_id,
+    zamow.data AS data_zamowienia,
+    detal_zamow.idd AS detal_id,
+    detal_zamow.sztuk,
+    produkty.idp AS produkt_id,
+    produkty.nazwa AS produkt_nazwa,
+    produkty.cena,
+    produkty.ilosc
+FROM klienci
+LEFT JOIN zamow ON klienci.idk = zamow.k_id
+LEFT JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+LEFT JOIN produkty ON detal_zamow.p_id = produkty.idp;
+
+CREATE OR REPLACE VIEW produkty_zamowienia_klienci AS
+SELECT
+    produkty.idp AS produkt_id,
+    produkty.nazwa AS produkt_nazwa,
+    produkty.cena,
+    produkty.ilosc,
+    detal_zamow.idd AS detal_id,
+    detal_zamow.sztuk,
+    zamow.idz AS zamowienie_id,
+    zamow.data AS data_zamowienia,
+    klienci.idk AS klient_id,
+    klienci.nazwa AS klient_nazwa,
+    klienci.miasto,
+    klienci.adres,
+    klienci.telefon
+FROM produkty
+LEFT JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+LEFT JOIN zamow ON detal_zamow.z_id = zamow.idz
+LEFT JOIN klienci ON zamow.k_id = klienci.idk;
+
+Zadanie 2.
+--Zadanie 9--
+/* klienci_zamowienia_produkty zawiera klientów, ich zamówienia oraz produkty.
+a druga nie zawiera tych klientów, którzy nic nie zamówili */
+
+SELECT DISTINCT adres
+FROM klienci_zamowienia_produkty
+WHERE produkt_nazwa LIKE '%laptop%'
+ORDER BY REVERSE(klient_nazwa);
+
+--Zadanie 10--
+/* Obie się nadają bo zawierają nr. telefonu i dane produktu */
+
+SELECT DISTINCT produkt_nazwa
+FROM klienci_zamowienia_produkty
+WHERE telefon LIKE '%4%'
+ORDER BY cena ASC;
+
+
+--Zadanie 13--
+/* Obie się nadają, bo zawierają nazwę produktu i miejscowość */
+
+SELECT DISTINCT produkt_nazwa, miasto
+FROM klienci_zamowienia_produkty
+WHERE produkt_id IS NOT NULL;
+
+--Zadanie 14--
+/* produkty_zamowienia_klienci się nada, druga nie zawiera produktów bez zamówień */
+
+SELECT DISTINCT produkt_nazwa
+FROM produkty_zamowienia_klienci
+WHERE detal_id IS NULL;
+
+--Zadanie 15
+/* klienci_zamowienia_produkty , druga nie zawiera klientów bez zamówień */
+
+SELECT DISTINCT klient_nazwa
+FROM klienci_zamowienia_produkty
+WHERE zamowienie_id IS NULL;
+
+--Zadanie 16
+ /* produkty_zamowienia_klienci bo druga nie zawiera produktów które nigdy nie zostały zamówione */
+
+SELECT 
+  produkt_nazwa,
+  COUNT(DISTINCT klient_id) AS liczba_klientow_z_W
+FROM produkty_zamowienia_klienci
+WHERE miasto LIKE 'W%'
+  AND klient_id IS NOT NULL
+GROUP BY produkt_nazwa;
+
+Zadanie 3
+SELECT 
+    klient_nazwa
+FROM 
+    klienci_zamowienia_produkty
+WHERE 
+    produkt_nazwa LIKE '%laptop%' 
+    OR produkt_nazwa LIKE '%tablet%'
+GROUP BY 
+    klient_id, klient_nazwa
+HAVING 
+    SUM(produkt_nazwa LIKE '%laptop%') > 0
+    AND 
+    SUM(produkt_nazwa LIKE '%tablet%') > 0;
+
+Zadanie 4
+SELECT kp1.klient_nazwa
+FROM klienci_zamowienia_produkty kp1
+JOIN klienci_zamowienia_produkty kp2 ON kp2.produkt_nazwa LIKE '%laptop%'
+WHERE kp1.cena > kp2.cena
+GROUP BY kp1.klient_nazwa;
+
+Zadanie 5.
+CREATE OR REPLACE VIEW v_klient_produkt AS
+SELECT 
+    klienci.nazwa AS klient_nazwa,
+    produkty.nazwa AS produkt_nazwa,
+    klienci.miasto AS klient_miasto
+FROM klienci
+JOIN zamow ON klienci.idk = zamow.k_id
+JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+JOIN produkty ON detal_zamow.p_id = produkty.idp;
+
+
+SELECT DISTINCT produkt_nazwa
+FROM v_klient_produkt AS vkp
+JOIN klienci AS warszawa ON warszawa.miasto = 'Warszawa'
+WHERE vkp.klient_nazwa < warszawa.nazwa;
+
+
+Zadanie 6
+CREATE OR REPLACE VIEW v_klient_wartosc AS
+SELECT 
+    klienci.nazwa AS klient_nazwa,
+    SUM(produkty.cena * detal_zamow.sztuk) AS wartosc_zamowien
+FROM klienci
+JOIN zamow ON klienci.idk = zamow.k_id
+JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+JOIN produkty ON detal_zamow.p_id = produkty.idp
+GROUP BY klienci.nazwa;
+
+SELECT v1.klient_nazwa
+FROM v_klient_wartosc AS v1
+JOIN v_klient_wartosc AS v2 ON v2.klient_nazwa = 'Astro'
+WHERE v1.wartosc_zamowien > v2.wartosc_zamowien;
+
+
+
+Zadanie 7.
+
+// a)
+SELECT nazwa
+FROM produkty
+WHERE cena > 2 * (SELECT AVG(cena) FROM produkty);
+
+// b)
+SELECT nazwa
+FROM produkty
+WHERE cena > 2 * (
+    SELECT SUM(cena * ilosc) / SUM(ilosc) FROM produkty
+);
+
+// c)
+CREATE OR REPLACE VIEW v_produkt_zamowienia_sztuk AS
+SELECT 
+    produkty.idp,
+    produkty.nazwa,
+    produkty.cena,
+    SUM(detal_zamow.sztuk) AS sztuk_zamowionych
+FROM produkty
+JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+GROUP BY produkty.idp, produkty.nazwa, produkty.cena;
+
+SELECT nazwa
+FROM v_produkt_zamowienia_sztuk
+WHERE cena > 2 * (
+    SELECT SUM(cena * sztuk_zamowionych) / SUM(sztuk_zamowionych)
+    FROM v_produkt_zamowienia_sztuk
+);
+
+
+Zadanie 8.
+
+
+
+Zadanie 9.
+CREATE OR REPLACE VIEW v_klient_wartosc_zamowien AS
+SELECT 
+    klienci.nazwa AS klient_nazwa,
+    SUM(produkty.cena * detal_zamow.sztuk) AS wartosc_zamowien
+FROM klienci
+JOIN zamow ON klienci.idk = zamow.k_id
+JOIN detal_zamow ON zamow.idz = detal_zamow.z_id
+JOIN produkty ON detal_zamow.p_id = produkty.idp
+GROUP BY klienci.nazwa;
+
+SELECT klient_nazwa
+FROM v_klient_wartosc_zamowien
+WHERE wartosc_zamowien = (SELECT MAX(wartosc_zamowien) FROM v_klient_wartosc_zamowien);
+
+
+Zadanie 10.
+//a)
+SELECT produkty.nazwa
+FROM produkty
+JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+GROUP BY produkty.nazwa
+ORDER BY COUNT(detal_zamow.idd) DESC
+LIMIT 1;
+
+//b)
+SELECT produkty.nazwa
+FROM produkty
+JOIN detal_zamow ON produkty.idp = detal_zamow.p_id
+GROUP BY produkty.nazwa
+ORDER BY SUM(detal_zamow.sztuk) DESC
+LIMIT 1;
+
+Zadanie 11.
+SELECT 
+    kzp1.produkt_nazwa, 
+    DATE(kzp1.data_zamowienia) AS data, 
+    MAX(kzp1.cena * kzp1.sztuk) AS wartosc
+FROM klienci_zamowienia_produkty kzp1
+LEFT JOIN klienci_zamowienia_produkty kzp2 
+    ON DATE(kzp1.data_zamowienia) = DATE(kzp2.data_zamowienia) 
+    AND (kzp1.cena * kzp1.sztuk) < (kzp2.cena * kzp2.sztuk)
+WHERE kzp2.klient_id IS NULL 
+  AND kzp1.produkt_nazwa IS NOT NULL
+GROUP BY DATE(kzp1.data_zamowienia), kzp1.produkt_nazwa
+ORDER BY data DESC;
+
+
+Zadanie 12.
+SELECT 
+    MAX(klient_nazwa) AS nazwa, 
+    miasto, 
+    MAX(data_zamowienia) AS data
+FROM klienci_zamowienia_produkty
+WHERE data_zamowienia IS NOT NULL
+GROUP BY miasto;
+
+
+Zadanie 13.
+SELECT 
+    klient_nazwa, 
+    MAX(produkt_nazwa) AS produkt_nazwa, 
+    MAX(cena * sztuk) AS 'Wydane najwiecej'
+FROM klienci_zamowienia_produkty
+WHERE produkt_nazwa IS NOT NULL
+GROUP BY klient_nazwa;
+
+
+Zadanie 14.
+SELECT nazwa 
+FROM produkty
+WHERE NOT EXISTS
+  (SELECT *
+  FROM detal_zamow
+  WHERE p_id=idp);
+
+Zadanie 15.
+SELECT nazwa
+FROM klienci
+LEFT JOIN zamow ON idk=k_id 
+LEFT JOIN detal_zamow ON idz=z_id
+WHERE idz IS NULL;
+
+Zadanie 16.
+SELECT COUNT(*) as 'Pustka'
+FROM zamow LEFT JOIN detal_zamow ON idz=z_id
+WHERE idd IS NULL;
+
+Zadanie 17.
+SELECT z1.*
+FROM zamow z1
+JOIN zamow z2 ON z1.data <= z2.data
+WHERE z1.k_id IN 
+  (
+    SELECT idk 
+    FROM klienci
+  )
+GROUP BY idz
+HAVING COUNT(z1.idz) <= 3
+
+Zadanie 18.
+SELECT p_id, COUNT(DISTINCT z_id) AS 'Rozne'
+FROM detal_zamow
+WHERE p_id IN 
+  (
+    SELECT idp
+    FROM produkty
+    WHERE ilosc = 
+      (
+        SELECT MAX(ilosc)
+        FROM produkty
+      )
+  )
+GROUP BY p_id;
+
+Zadanie 19.
+SELECT klient_nazwa,COUNT(DISTINCT produkt_id) AS 'Liczba prod'
+FROM klienci_zamowienia_produkty
+WHERE cena < 1500
+GROUP BY klient_nazwa;
+
+Zadanie 20.
+SELECT nazwa, 
+(SELECT COUNT(idk)
+	FROM klienci JOIN zamow ON idk=k_id
+        WHERE miasto LIKE 'W%' AND idz IN(
+                 SELECT z_id from detal_zamow 
+                    WHERE p_id = idp))
+AS 'Liczba klientow'
+FROM produkty;
+
+
